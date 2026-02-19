@@ -224,6 +224,7 @@ select { cursor: pointer; }
 <header>
   <span class="app-title">🔔 Напомни</span>
   <div class="header-btns">
+    <button class="icon-btn" onclick="openManualInput()">✏️ Добавить</button>
     <button class="icon-btn" onclick="showToday()">Сегодня</button>
   </div>
 </header>
@@ -607,6 +608,7 @@ function parseReminderPart(spec, eventTime) {
 let recognition = null;
 let isListening = false;
 let micRetried = false;
+let micTimer = null;
 
 function toggleMic() {
   if (isListening) { stopMic(); }
@@ -616,13 +618,16 @@ function toggleMic() {
 function startMic() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
-    alert('Голосовой ввод не поддерживается. Используй Chrome на Android.');
+    openManualInput();
     return;
   }
   recognition = new SR();
   recognition.lang = 'ru-RU';
   recognition.continuous = false;
   recognition.interimResults = true;
+
+  // Таймаут: если за 10 сек ничего — стоп
+  micTimer = setTimeout(() => stopMic(), 10000);
 
   recognition.onstart = () => {
     isListening = true;
@@ -649,7 +654,10 @@ function startMic() {
       setTimeout(() => startMic(), 300);
       return;
     }
-    if (e.error !== 'no-speech') alert('Ошибка микрофона: ' + e.error);
+    if (e.error !== 'no-speech') {
+      // Голос не работает — предлагаем ручной ввод
+      openManualInput();
+    }
   };
 
   recognition.onend = () => stopMic();
@@ -658,10 +666,22 @@ function startMic() {
 
 function stopMic() {
   isListening = false;
+  if (micTimer) { clearTimeout(micTimer); micTimer = null; }
   if (recognition) { try { recognition.stop(); } catch {} recognition = null; }
   document.getElementById('micBtn').classList.remove('listening');
   document.getElementById('micHint').textContent = 'Говори задачу';
   document.getElementById('transcriptBubble').classList.remove('show');
+}
+
+function openManualInput() {
+  // Открываем модалку с пустыми полями для ручного ввода
+  document.getElementById('fTask').value = '';
+  const now = new Date();
+  document.getElementById('fDate').value = dateToYMD(now);
+  document.getElementById('fTime').value = '';
+  document.getElementById('fReminderTime').value = '';
+  document.getElementById('fReminderSel').value = '30';
+  document.getElementById('modalBackdrop').classList.add('show');
 }
 
 // ══════════════════════════════════════
