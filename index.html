@@ -606,10 +606,11 @@ function parseReminderPart(spec, eventTime) {
 // ══════════════════════════════════════
 let recognition = null;
 let isListening = false;
+let micRetried = false;
 
 function toggleMic() {
   if (isListening) { stopMic(); }
-  else { startMic(); }
+  else { micRetried = false; startMic(); }
 }
 
 function startMic() {
@@ -643,7 +644,12 @@ function startMic() {
 
   recognition.onerror = e => {
     stopMic();
-    alert('Ошибка микрофона: ' + e.error);
+    if (e.error === 'aborted' && !micRetried) {
+      micRetried = true;
+      setTimeout(() => startMic(), 300);
+      return;
+    }
+    if (e.error !== 'no-speech') alert('Ошибка микрофона: ' + e.error);
   };
 
   recognition.onend = () => stopMic();
