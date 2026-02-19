@@ -262,9 +262,25 @@ select { cursor: pointer; }
 
 <!-- FAB: микрофон -->
 <div class="fab-wrap">
-  <div class="transcript-bubble" id="transcriptBubble"></div>
-  <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎤</button>
-  <div class="mic-hint" id="micHint">Говори задачу</div>
+  <button class="mic-btn" id="micBtn" onclick="openVoiceSheet()">🎤</button>
+  <div class="mic-hint">Говори задачу</div>
+</div>
+
+<!-- Модалка: голосовой ввод через клавиатуру -->
+<div class="modal-backdrop" id="voiceBackdrop">
+  <div class="modal-sheet">
+    <div class="modal-title">🎤 Говори через клавиатуру</div>
+    <div class="field-label" style="margin-top:0;font-size:.9rem;color:var(--text);line-height:1.5">
+      Нажми на поле → появится клавиатура → нажми 🎤 на ней → говори
+    </div>
+    <div class="field-label">Задача</div>
+    <input type="text" id="voiceInput" placeholder="завтра в 15 встреча напомни за 30 минут"
+      style="font-size:1rem;padding:14px 12px" autocomplete="off">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeVoiceSheet()">Отмена</button>
+      <button class="btn-save" onclick="submitVoice()">Далее →</button>
+    </div>
+  </div>
 </div>
 
 <!-- Модалка: подтверждение задачи -->
@@ -671,6 +687,23 @@ function stopMic() {
   document.getElementById('micBtn').classList.remove('listening');
   document.getElementById('micHint').textContent = 'Говори задачу';
   document.getElementById('transcriptBubble').classList.remove('show');
+}
+
+function openVoiceSheet() {
+  document.getElementById('voiceInput').value = '';
+  document.getElementById('voiceBackdrop').classList.add('show');
+  setTimeout(() => document.getElementById('voiceInput').focus(), 100);
+}
+
+function closeVoiceSheet() {
+  document.getElementById('voiceBackdrop').classList.remove('show');
+}
+
+function submitVoice() {
+  const text = document.getElementById('voiceInput').value.trim();
+  if (!text) return;
+  closeVoiceSheet();
+  openPreview(text);
 }
 
 function openManualInput() {
