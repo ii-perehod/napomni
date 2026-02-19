@@ -643,7 +643,7 @@ function startMic() {
 
   recognition.onerror = e => {
     stopMic();
-    if (e.error !== 'no-speech') alert('Ошибка микрофона: ' + e.error);
+    alert('Ошибка микрофона: ' + e.error);
   };
 
   recognition.onend = () => stopMic();
